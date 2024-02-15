@@ -11,7 +11,7 @@ type Article struct {
 type Comment struct {
 	Content string
 	Like int
-	Dislike string
+	Dislike int
 	Written_date string
 	ArticleURL string
 }

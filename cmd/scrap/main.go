@@ -38,7 +38,6 @@ func main() {
 			fmt.Printf("Score: %.4f, Sentence: %s\n", keysent.Score, keysent.Sentence)
 		}
 
-
 	}
 	
 }

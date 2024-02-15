@@ -48,6 +48,34 @@ func CreateHttpReq(url string) (io.ReadCloser, error) {
 	// return string(data), nil
 }
 
+func CreateHttpReqWithReferer(url, refererLink string) (string, error) {
+	req, err := http.NewRequest("GET", url, nil) 
+	if err != nil {
+		return "", err
+	}
+
+	client := &http.Client{}
+	req.Header.Add("Referer", refererLink)
+
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		return "", HandleHttpStatusErr(res)
+	}
+	// return res.Body, nil
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
 func HandleHttpStatusErr(res *http.Response) (error) {
 	data, err := io.ReadAll(res.Body)
 	if err != nil {
