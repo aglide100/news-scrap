@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"strings"
+	"log"
+	"time"
 
+	"github.com/aglide100/news-scrap/pkg/db"
 	"github.com/aglide100/news-scrap/pkg/logger"
 	"github.com/aglide100/news-scrap/pkg/scrap"
-	"github.com/aglide100/news-scrap/pkg/textrank"
 	"go.uber.org/zap"
 )
 
@@ -22,23 +22,30 @@ import (
 
 
 func main() {
-	articles, _, err := scrap.Scrap()
+	db, err := db.NewDB()
 	if err != nil {
-		logger.Info("err", zap.Any("err", err))
+		log.Fatalf(err.Error())
 	}
-	
 
-	for _, article := range articles {
-		docs := strings.Split(article.Content, ".")
-
-
-		keysents := textrank.TextRankSentences(docs, 2, 0.85, 30, 3)
-
-		for _, keysent := range keysents {
-			fmt.Printf("Score: %.4f, Sentence: %s\n", keysent.Score, keysent.Sentence)
+	duration, _ := time.ParseDuration("20000s")
+	ticker := time.NewTicker(duration)
+	defer ticker.Stop()
+	for range ticker.C {
+		_, _, err := scrap.Scrap(db)
+		if err != nil {
+			logger.Info("err", zap.Any("err", err))
 		}
-
-	}
+		// for _, article := range articles {
+		// 	docs := strings.Split(article.Content, ".")
 	
+	
+		// 	keysents := textrank.TextRankSentences(docs, 2, 0.85, 30, 3)
+	
+		// 	for _, keysent := range keysents {
+		// 		fmt.Printf("Score: %.4f, Sentence: %s\n", keysent.Score, keysent.Sentence)
+		// 	}
+	
+		// }
+	}
 }
 

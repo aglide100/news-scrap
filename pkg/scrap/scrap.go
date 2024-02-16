@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/aglide100/news-scrap/pkg/db"
 	"github.com/aglide100/news-scrap/pkg/logger"
 	"github.com/aglide100/news-scrap/pkg/model"
 	"github.com/aglide100/news-scrap/pkg/textrank"
@@ -33,7 +34,7 @@ var (
 	comment_date = flag.String("comment_date", "regTime", "comment_date")
 )
 
-func Scrap() ([]*model.Article, []*model.Comment, error) {
+func Scrap(db *db.Database) ([]*model.Article, []*model.Comment, error) {
 	flag.Parse()
 
 	body, err := CreateHttpReq(*target)
@@ -112,6 +113,12 @@ func Scrap() ([]*model.Article, []*model.Comment, error) {
 			logger.Info("content", zap.Any("content", content))
 
 			
+			err = db.SaveArticle(newArticle)
+			if err != nil {
+				log.Printf("can't save article %s", err)
+				continue
+			}
+			
 			p1, p2 := extractID(link)
 			commentLink := *comment_link + p1 + "%2C" +p2 
 			
@@ -144,8 +151,16 @@ func Scrap() ([]*model.Article, []*model.Comment, error) {
 					Like: like_cnt,
 					Dislike: dislike_cnt,
 					Written_date: date.String(),
+					ArticleURL: link,
 				}
 				comments = append(comments, newComment)
+
+
+				err = db.SaveComment(newComment)
+				if err != nil {
+					log.Printf("can't save comment %s", err)
+				}
+				
 			}
 			
 			logger.Info("comments", zap.Any("len", len(comments)))
@@ -158,7 +173,11 @@ func Scrap() ([]*model.Article, []*model.Comment, error) {
 			for _, keysent := range keysents {
 				fmt.Printf("Score: %.4f, Sentence: %s\n", keysent.Score, keysent.Sentence)
 			}
+
+			
 		}
+
+
 
 		time.Sleep(5 * time.Second)
 	}
@@ -184,14 +203,14 @@ func extractJson(text string) string {
 	front := 0
 	rear := 0
 
-	for i:=0; i<len(text); i++ {
+	for i := 0; i < len(text); i++ {
 		if (text[i] == '{') {
 			front = i
 			break
 		}
 	}
 
-	for i:=len(text)-1; i>=0; i-- {
+	for i := len(text)-1; i>=0; i-- {
 		if (text[i] == '}') {
 			rear = i
 			break

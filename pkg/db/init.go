@@ -17,6 +17,7 @@ func NewDB() (*Database, error) {
     }
 
 	if err := db.Ping(); err != nil {
+		log.Printf("DSN : %s", os.Getenv("DSN"))
 		return nil, errors.New("failed to ping: " + err.Error())
     }
 
