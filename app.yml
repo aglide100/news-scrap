@@ -1,12 +1,73 @@
 version: "3.7"
 
 services:
-    scrap:
+    news-102:
         image: ${IMAGEURL}
         networks:
             - traefik-network
         environment:
             DSN: ${DSN}
+        command: "/opt/bin/scrap/main --target=https://news.naver.com/section/102 --tag=102"
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 2
+                order: start-first
+                failure_action: rollback
+                delay: 10s
+            restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+    news-101:
+        image: ${IMAGEURL}
+        networks:
+            - traefik-network
+        environment:
+            DSN: ${DSN}
+        command: "/opt/bin/scrap/main --target=https://news.naver.com/section/101 --tag=101"
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 2
+                order: start-first
+                failure_action: rollback
+                delay: 10s
+            restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+    news-100:
+        image: ${IMAGEURL}
+        networks:
+            - traefik-network
+        environment:
+            DSN: ${DSN}
+        command: "/opt/bin/scrap/main --target=https://news.naver.com/section/100 --tag=100"
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 2
+                order: start-first
+                failure_action: rollback
+                delay: 10s
+            restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+    news-103:
+        image: ${IMAGEURL}
+        networks:
+            - traefik-network
+        environment:
+            DSN: ${DSN}
+        command: "/opt/bin/scrap/main --target=https://news.naver.com/section/103 --tag=103"
         deploy:
             mode: replicated
             replicas: 1

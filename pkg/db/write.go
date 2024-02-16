@@ -25,11 +25,11 @@ func (db *Database) SaveArticle(article *model.Article) error {
 	}
 
 	const q2 = `
-	INSERT INTO article(title, content, url, written_date)
-   		VALUES (?, ?, ?, ?)
+	INSERT INTO article(title, content, url, written_date, tag)
+   		VALUES (?, ?, ?, ?, ?)
 	`
 	
-	_, err = db.conn.Exec(q2, article.Title, article.Content, article.Url, article.Written_date)
+	_, err = db.conn.Exec(q2, article.Title, article.Content, article.Url, article.Written_date, article.Tag)
 	if err != nil {
 		logger.Error("Can't insert article", zap.Error(err))
 		return err

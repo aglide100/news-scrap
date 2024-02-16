@@ -6,6 +6,7 @@ type Article struct {
 	Written_date string
 	Content string
 	Url string
+	Tag string
 }
 
 type Comment struct {

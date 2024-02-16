@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/aglide100/news-scrap/pkg/db"
 	"github.com/aglide100/news-scrap/pkg/logger"
 	"github.com/aglide100/news-scrap/pkg/model"
-	"github.com/aglide100/news-scrap/pkg/textrank"
 	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 )
@@ -32,6 +32,8 @@ var (
 	comment_like = flag.String("comment_like", "sympathyCount", "comment_like")
 	comment_dislike = flag.String("comment_dislike", "antipathyCount", "comment_dislike")
 	comment_date = flag.String("comment_date", "regTime", "comment_date")
+
+	tag = flag.String("tag", "100", "tag")
 )
 
 func Scrap(db *db.Database) ([]*model.Article, []*model.Comment, error) {
@@ -93,26 +95,23 @@ func Scrap(db *db.Database) ([]*model.Article, []*model.Comment, error) {
 		})
 
 		title = Preprocessing(title)
-
 		date = Preprocessing(date)
-
 		content = Preprocessing(content)
 
-		// logger.Info("article_doc", zap.Any("doc", Preprocessing(article_doc.Text())))
 		if len(title) > 5 && len(content) > 5 {
 			newArticle := &model.Article{
 				Title: title,
 				Written_date: date,
 				Content: content,
 				Url: link,
+				Tag: *tag,
 			}
 
 			logger.Info("link", zap.Any("link", link))
 			logger.Info("title", zap.Any("title", title))
 			logger.Info("date", zap.Any("date", date))
-			logger.Info("content", zap.Any("content", content))
+			// logger.Info("content", zap.Any("content", content))
 
-			
 			err = db.SaveArticle(newArticle)
 			if err != nil {
 				log.Printf("can't save article %s", err)
@@ -146,6 +145,10 @@ func Scrap(db *db.Database) ([]*model.Article, []*model.Comment, error) {
 
 				date := val.Get(*comment_date)
 
+				if len(content.String()) <= 1 {
+					continue
+				}
+
 				newComment := &model.Comment{
 					Content: content.String(),
 					Like: like_cnt,
@@ -155,31 +158,26 @@ func Scrap(db *db.Database) ([]*model.Article, []*model.Comment, error) {
 				}
 				comments = append(comments, newComment)
 
-
 				err = db.SaveComment(newComment)
 				if err != nil {
 					log.Printf("can't save comment %s", err)
-				}
-				
+				}				
 			}
 			
 			logger.Info("comments", zap.Any("len", len(comments)))
 
 			articles = append(articles, newArticle)
 
-			docs := strings.Split(newArticle.Content, ".")
-			keysents := textrank.TextRankSentences(docs, 2, 0.85, 30, 4)
+			// docs := strings.Split(newArticle.Content, ".")
+			// keysents := textrank.TextRankSentences(docs, 2, 0.85, 30, 4)
 
-			for _, keysent := range keysents {
-				fmt.Printf("Score: %.4f, Sentence: %s\n", keysent.Score, keysent.Sentence)
-			}
-
-			
+			// for _, keysent := range keysents {
+			// 	fmt.Printf("Score: %.4f, Sentence: %s\n", keysent.Score, keysent.Sentence)
+			// }
 		}
 
-
-
-		time.Sleep(5 * time.Second)
+		tick := randInt(3, 10)
+		time.Sleep(time.Duration(time.Duration(tick).Seconds()))
 	}
 
 	defer body.Close()
@@ -218,4 +216,11 @@ func extractJson(text string) string {
 	}
 
 	return text[front:rear+1]
+}
+
+func randInt(min int, max int) int {
+	source := rand.NewSource(time.Now().UnixNano())
+	rng := rand.New(source)
+
+    return min + rng.Intn(max-min)
 }

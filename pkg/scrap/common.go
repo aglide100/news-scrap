@@ -89,7 +89,18 @@ func HandleHttpStatusErr(res *http.Response) (error) {
 func Preprocessing(input string) string {
 	var result string
 
+	isSpace := false
 	for _, char := range input {
+		if char == ' '{
+			if isSpace {
+				continue
+			} else {
+				isSpace = true
+			}
+		} else {
+			isSpace = false
+		}
+		
 		if unicode.IsGraphic(char) {
 			result += string(char)
 		}
